@@ -12,32 +12,25 @@ properties = {
 }
 
 # Step 1: Read data from PostgreSQL into a Spark DataFrame
-try:
-    df = spark.read.format("jdbc").options(
-        url=url,
-        dbtable="tfl_underground_pyspark",  # Replace with your PostgreSQL table name
-        user=properties["user"],
-        password=properties["password"],
-        driver=properties["driver"]
-    ).load()
-    
-    print("Data successfully read from PostgreSQL:")
-    df.printSchema()    
+df = spark.read.format("jdbc").options(
+    url=url,
+    dbtable="tfl_underground_pyspark",  # Replace with your PostgreSQL table name
+    user=properties["user"],
+    password=properties["password"],
+    driver=properties["driver"]
+).load()
 
-    # Transformation 1: Convert 'Timestamp' column to timestamp data type
-    df_transformed = df.withColumn("Timestamp", to_timestamp(col("Timestamp"), "dd/MM/yyyy HH:mm"))
+print("Data successfully read from PostgreSQL:")
+df.printSchema()    
 
-    # Transformation 2: Replace 'N/A' with None
-    df_transformed = df_transformed.na.replace("N/A", None)
+# Transformation 1: Convert 'Timestamp' column to timestamp data type
+df_transformed = df.withColumn("Timestamp", to_timestamp(col("Timestamp"), "dd/MM/yyyy HH:mm"))
 
-    # Write the transformed DataFrame to Hive table
-    df_transformed.write.mode("overwrite").saveAsTable("bigdata_sabaitc.tflpyspark")
-    print("Successfully loaded to Hive")
-    # spark-submit --master local[*] --jars /var/lib/jenkins/workspace/nagaranipysparkdryrun/lib/postgresql-42.5.3.jar src/full_load_postgresToHive.py
+# Transformation 2: Replace 'N/A' with None
+df_transformed = df_transformed.na.replace("N/A", None)
 
-except Exception as e:
-    print(f"An error occurred: {e}")
+# Write the transformed DataFrame to Hive table
+df_transformed.write.mode("overwrite").saveAsTable("bigdata_sabaitc.tflpyspark")
+print("Successfully loaded to Hive")
+# spark-submit --master local[*] --jars /var/lib/jenkins/workspace/nagaranipysparkdryrun/lib/postgresql-42.5.3.jar src/full_load_postgresToHive.py
 
-finally:
-    # Stop the SparkSession
-    spark.stop()
