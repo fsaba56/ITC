@@ -20,7 +20,7 @@ df_postgres = spark.read.format("jdbc").options(
 ).load()
 
 # Step : Read data from Hive into a Spark DataFrame
-df_hive = spark.sql("SELECT * FROM tfl_data_db.tfl_underground")  # Modify the table name as per your case
+df_hive = spark.sql("SELECT * FROM tfl_data_db.tfl_underground")
 
 # Transformation 1: Convert 'Timestamp' column to timestamp data type
 df_hive_transformed = df_hive.withColumn("Timestamp", to_timestamp(col("Timestamp"), "dd/MM/yyyy HH:mm"))
