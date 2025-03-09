@@ -30,6 +30,7 @@ df_transformed = df.withColumn("Timestamp", to_timestamp(col("Timestamp"), "dd/M
 df_transformed = df_transformed.na.replace("N/A", None)
 df_transformed = df_transformed.na.replace("NaN", None)
 
+spark.sql("DROP TABLE IF EXISTS bigdata_sabaitc.tflpyspark")
 # Write the transformed DataFrame to Hive table
 df_transformed.write.mode("overwrite").saveAsTable("bigdata_sabaitc.tflpyspark")
 print("Successfully loaded to Hive")
