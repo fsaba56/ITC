@@ -84,7 +84,9 @@ else:
     print("Data successfully inserted into PostgreSQL.")
 
 # Write the transformed DataFrame to Hive table
-df_new_data.write.mode("append").saveAsTable("bigdata_sabaitc.tflpyspark")
+df_new_data.write.format("hive").mode("append").saveAsTable("bigdata_sabaitc.tflpyspark")
+
+#df_new_data.write.mode("append").saveAsTable("bigdata_sabaitc.tflpyspark")
 print("Successfully loaded to Hive")
 
 # Close PostgreSQL connection
