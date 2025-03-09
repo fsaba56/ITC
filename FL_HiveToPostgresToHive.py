@@ -28,6 +28,7 @@ df_transformed = df.withColumn("Timestamp", to_timestamp(col("Timestamp"), "dd/M
 
 # Transformation 2: Replace 'N/A' with None
 df_transformed = df_transformed.na.replace("N/A", None)
+df_transformed = df_transformed.na.replace("NaN", None)
 
 # Write the transformed DataFrame to Hive table
 df_transformed.write.mode("overwrite").saveAsTable("bigdata_sabaitc.tflpyspark")
