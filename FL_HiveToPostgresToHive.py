@@ -3,16 +3,41 @@ from pyspark.sql.functions import *
 
 spark = SparkSession.builder.master("local").appName("Minipro").enableHiveSupport().getOrCreate()
 
-df = spark.read.format("jdbc").option("url", "jdbc:postgresql://18.170.23.150:5432/testdb").option("driver", "org.postgresql.Driver").option("dbtable", "tfl_underground_pyspark").option("user", "postgres").option("password", "welcomeitc@2022").load()
-df.printSchema()
+# PostgreSQL connection properties
+url = "jdbc:postgresql://18.170.23.150/testdb?ssl=false"  # Replace with your PostgreSQL connection details
+properties = {
+    "user": "consultants",        # PostgreSQL username
+    "password": "WelcomeItc@2022",    # PostgreSQL password
+    "driver": "org.postgresql.Driver"
+}
 
-# Transformation 1: Convert 'Timestamp' column to timestamp data type
-df_transformed = df.withColumn("Timestamp", to_timestamp(col("Timestamp"), "dd/MM/yyyy HH:mm"))
+# Step 1: Read data from PostgreSQL into a Spark DataFrame
+try:
+    df = spark.read.format("jdbc").options(
+        url=url,
+        dbtable="tfl_underground_pyspark",  # Replace with your PostgreSQL table name
+        user=properties["user"],
+        password=properties["password"],
+        driver=properties["driver"]
+    ).load()
+    
+    print("Data successfully read from PostgreSQL:")
+    df.printSchema()    
 
-# Transformation 2: Replace 'N/A' with None
-df_transformed = df_transformed.na.replace("N/A", None)
+    # Transformation 1: Convert 'Timestamp' column to timestamp data type
+    df_transformed = df.withColumn("Timestamp", to_timestamp(col("Timestamp"), "dd/MM/yyyy HH:mm"))
 
-# Write the transformed DataFrame to Hive table
-df_transformed.write.mode("overwrite").saveAsTable("bigdata_sabaitc.bigdata_sabaitc")
-print("Successfully loaded to Hive")
-# spark-submit --master local[*] --jars /var/lib/jenkins/workspace/nagaranipysparkdryrun/lib/postgresql-42.5.3.jar src/full_load_postgresToHive.py
+    # Transformation 2: Replace 'N/A' with None
+    df_transformed = df_transformed.na.replace("N/A", None)
+
+    # Write the transformed DataFrame to Hive table
+    df_transformed.write.mode("overwrite").saveAsTable("bigdata_sabaitc.tflpyspark")
+    print("Successfully loaded to Hive")
+    # spark-submit --master local[*] --jars /var/lib/jenkins/workspace/nagaranipysparkdryrun/lib/postgresql-42.5.3.jar src/full_load_postgresToHive.py
+
+except Exception as e:
+    print(f"An error occurred: {e}")
+
+finally:
+    # Stop the SparkSession
+    spark.stop()
