@@ -8,6 +8,7 @@ spark = SparkSession.builder \
     .enableHiveSupport() \
     .getOrCreate()
 
+spark.sparkContext.setLogLevel("ERROR")
 target_table = "default.tfl_underground_result"
 # Step 1: Load data from the source Hive table
 print("Step 1: Reading data from Hive table")
@@ -29,7 +30,7 @@ print("Step 2: Performing transformations...")
 
 # Step 1: Generate new 'recordid' for the data from source
 # Create a monotonically increasing ID, starting from last_recordid + 1
-df_transformed = df_source.withColumn("recordid", monotonically_increasing_id() + last_recordid + 1)
+df_transformed = df_source.withColumn("record_id", monotonically_increasing_id() + last_recordid + 1)
    
 # 2. Filtering records based on a condition (Example: removing NULL values)
 df_transformed = df_transformed.filter(col("route").isNotNull())
