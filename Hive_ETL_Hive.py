@@ -19,7 +19,7 @@ df_source = spark.sql("SELECT * FROM default.tfl_undergroundrecord")
 # Step 2: Check if the table exists and get the last recordid
 try:
     print("Step 1: Reading maxid from Hive table")
-    last_recordid = spark.sql("SELECT MAX(recordid) FROM default.tfl_underground_result").collect()[0][0]
+    last_recordid = spark.sql("SELECT MAX(record_id) FROM default.tfl_underground_result").collect()[0][0]
 except Exception as e:
     last_recordid = None
 
