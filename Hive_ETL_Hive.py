@@ -12,7 +12,7 @@ spark = SparkSession.builder \
 source_table = "default.tfl_undergroundrecord"
 target_table = "default.tfl_underground_result"
 
-print(f" Step 1: Reading data from Hive table: {source_table}")
+print(f" Step 1: Reading data from Hive table: default.tfl_undergroundrecord")
 df = spark.sql(f"SELECT * FROM {source_table}")
 
 # Example Transformations
