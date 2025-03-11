@@ -38,7 +38,7 @@ df_transformed = df_transformed.filter(col("route").isNotNull())
 df_transformed = df_transformed.withColumn("ingestion_timestamp", current_timestamp())
 
 # 4. Filter out rows where the timestamp column is a specific value (e.g., 'Timestamp')
-df_transformed = df_transformed.filter(df_transformed.timestamp != 'Timestamp')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'timedetails')
 
 # 5. Filter out rows where the timestamp is NULL
 df_transformed = df_transformed.filter(df_transformed.timestamp.isNotNull())
