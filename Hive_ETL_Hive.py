@@ -1,6 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, current_timestamp
-from pyspark.sql import functions as F
+from pyspark.sql.functions import col, current_timestamp, row_number
 from pyspark.sql.window import Window
 
 # Initialize Spark Session with Hive Support
@@ -30,9 +29,12 @@ if last_recordid is None:
 # Example Transformations
 print("Step 2: Performing transformations...")
 
-# Step 1: Use row_number to generate sequential record_id
-windowSpec = Window.orderBy(F.lit(1))  # Use a constant to order the rows
-df_transformed = df_source.withColumn("record_id", F.row_number().over(windowSpec) + last_recordid)
+# Step 1: Create a window specification to generate sequential row numbers
+windowSpec = Window.orderBy("timedetails")  # Adjust this to your required ordering column
+
+# Step 2: Add row_number as the record_id, starting from last_recordid + 1
+df_transformed = df_source.withColumn("record_id", row_number().over(windowSpec) + last_recordid)
+
 
    
 # 2. Filtering records based on a condition (Example: removing NULL values)
