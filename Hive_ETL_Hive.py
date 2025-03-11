@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, current_timestamp
+from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 # Initialize Spark Session with Hive Support
