@@ -31,7 +31,7 @@ df_transformed = df_transformed.withColumn("ingestion_timestamp", current_timest
 df_transformed.show()
 
 # Write the transformed data back into another Hive table
-print(f"Step 3: Writing transformed data to Hive table: {target_table}")
+print("Step 3: Writing transformed data to Hive table")
 df_transformed.write.mode("overwrite").format("hive").saveAsTable(target_table)
 
 print("🎯 ETL Process Completed Successfully!")
