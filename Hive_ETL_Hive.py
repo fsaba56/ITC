@@ -34,7 +34,7 @@ df_transformed.show()
 print("Step 3: Writing transformed data to Hive table")
 df_transformed.write.mode("overwrite").format("hive").saveAsTable(target_table)
 
-print("🎯 ETL Process Completed Successfully!")
+print("ETL Process Completed Successfully!")
 
 # Stop Spark Session
 spark.stop()
