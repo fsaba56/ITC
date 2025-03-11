@@ -39,9 +39,22 @@ df_transformed = df_transformed.withColumn("ingestion_timestamp", current_timest
 
 # 4. Filter out rows where the timestamp column is a specific value (e.g., 'Timestamp')
 df_transformed = df_transformed.filter(df_transformed.timedetails != 'timedetails')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'timedetails String')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'status String')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'route String')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'reason String')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'line String')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'id int')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'delay_time String')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'STORED AS TEXTFILE')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'ROW FORMAT DELIMITED')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'LOCATION '/tmp/big_datajan2025/TFL/TFL_UndergroundRecord';')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'LINES TERMINATED BY '\n'')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'FIELD TERMINATED BY '')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'CREATE EXTERNAL TABLE default.tfl_ugrFullScoop (')
 
 # 5. Filter out rows where the timestamp is NULL
-df_transformed = df_transformed.filter(df_transformed.timestamp.isNotNull())
+df_transformed = df_transformed.filter(df_transformed.timedetails.isNotNull())
 
 # Show transformed data
 df_transformed.show()
