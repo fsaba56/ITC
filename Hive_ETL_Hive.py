@@ -49,8 +49,8 @@ df_transformed = df_transformed.filter(df_transformed.timedetails != 'delay_time
 df_transformed = df_transformed.filter(df_transformed.timedetails != 'STORED AS TEXTFILE')
 df_transformed = df_transformed.filter(df_transformed.timedetails != 'ROW FORMAT DELIMITED')
 df_transformed = df_transformed.filter(df_transformed.timedetails != 'LOCATION /tmp/big_datajan2025/TFL/TFL_UndergroundRecord')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'LINES TERMINATED BY '\n'')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'FIELD TERMINATED BY '')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'LINES TERMINATED BY \n')
+df_transformed = df_transformed.filter(df_transformed.timedetails != 'FIELD TERMINATED BY ')
 df_transformed = df_transformed.filter(df_transformed.timedetails != 'CREATE EXTERNAL TABLE default.tfl_ugrFullScoop (')
 
 # 5. Filter out rows where the timestamp is NULL
