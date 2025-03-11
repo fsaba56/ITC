@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, current_timestamp
-from pyspark.sql.functions import monotonically_increasing_id
+from pyspark.sql.window import Window
 
 # Initialize Spark Session with Hive Support
 spark = SparkSession.builder \
@@ -28,9 +28,10 @@ if last_recordid is None:
 # Example Transformations
 print("Step 2: Performing transformations...")
 
-# Step 1: Generate new 'recordid' for the data from source
-# Create a monotonically increasing ID, starting from last_recordid + 1
-df_transformed = df_source.withColumn("record_id", monotonically_increasing_id() + last_recordid + 1)
+# Step 1: Use row_number to generate sequential record_id
+windowSpec = Window.orderBy(F.lit(1))  # Use a constant to order the rows
+df_transformed = df_source.withColumn("record_id", F.row_number().over(windowSpec) + last_recordid)
+
    
 # 2. Filtering records based on a condition (Example: removing NULL values)
 df_transformed = df_transformed.filter(col("route").isNotNull())
