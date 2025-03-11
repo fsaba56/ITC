@@ -13,7 +13,7 @@ source_table = "default.tfl_undergroundrecord"
 target_table = "default.tfl_underground_result"
 
 print("Step 1: Reading data from Hive table")
-df = spark.sql(f"SELECT * FROM {source_table}")
+df = spark.sql("SELECT * FROM default.tfl_undergroundrecord")
 
 # Example Transformations
 print("Step 2: Performing transformations...")
