@@ -10,6 +10,10 @@ spark = SparkSession.builder \
 
 spark.sparkContext.setLogLevel("ERROR")
 target_table = "default.tfl_underground_result"
+
+
+spark.sql("TRUNCATE TABLE default.tfl_underground_result")
+
 # Step 1: Load data from the source Hive table
 print("Step 1: Reading data from Hive table")
 df_source = spark.sql("SELECT * FROM default.tfl_undergroundrecord")
