@@ -61,7 +61,7 @@ df_transformed.show()
 
 # Write the transformed data back into another Hive table
 print("Step 3: Writing transformed data to Hive table")
-df_transformed.write.mode("append").format("hive").saveAsTable(target_table)
+df_transformed.write.mode("overwrite").format("hive").saveAsTable(target_table)
 
 print("ETL Process Completed Successfully!")
 
