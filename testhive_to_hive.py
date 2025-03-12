@@ -15,7 +15,7 @@ SOURCE_TABLE = "tfl_undergroundrecord"
 TARGET_TABLE = "TFL_Underground_Result_N"
 
 # Load data from the source table
-df_source = spark.sql(f"SELECT * FROM {HIVE_DB}.{SOURCE_TABLE}")
+df_source = spark.sql("SELECT * FROM default.tfl_undergroundrecord")
 
 # Add an "ingestion_timestamp" column
 df_transformed = df_source.withColumn("ingestion_timestamp", current_timestamp())
@@ -29,7 +29,7 @@ df_transformed = df_transformed.filter(col("route").isNotNull())
 
 # Retrieve the maximum existing record_id from the target table
 try:
-    max_record_id = spark.sql(f"SELECT MAX(record_id) FROM {HIVE_DB}.{TARGET_TABLE}").collect()[0][0]
+    max_record_id = spark.sql("SELECT MAX(record_id) FROM default.TFL_Underground_Result_N").collect()[0][0]
     if max_record_id is None:
         max_record_id = 0  # If table is empty, start from 1
 except:
@@ -61,7 +61,7 @@ expected_columns = ["record_id", "timedetails", "line", "status", "reason", "del
 df_final = df_transformed.select(*expected_columns)
 
 # Append data into the existing Hive table
-df_final.write.mode("append").insertInto(f"{HIVE_DB}.{TARGET_TABLE}")
+df_final.write.mode("append").insertInto("default.TFL_Underground_Result_N")
 
 # Stop Spark session
 spark.stop()
