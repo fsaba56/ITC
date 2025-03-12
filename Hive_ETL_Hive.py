@@ -30,7 +30,7 @@ if last_recordid is None:
 print("Step 2: Performing transformations...")
 
 # Add Auto-Increment Column
-df_source = df_source.withColumn("id", monotonically_increasing_id())
+df_source = df_source.withColumn("record_id", monotonically_increasing_id())
   
 # 2. Filtering records based on a condition (Example: removing NULL values)
 df_source = df_source.filter(col("route").isNotNull())
