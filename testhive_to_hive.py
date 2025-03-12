@@ -35,23 +35,20 @@ try:
 except:
     max_record_id = 0  # If table doesn't exist, start from 1
 
-# Generate an auto-incremented record_id based on row_number() with deterministic ordering
-window_spec = Window.orderBy("timedetails", "route", "delay_time")  # Ordering to avoid duplicate IDs
-df_transformed = df_transformed.withColumn("record_id", row_number().over(window_spec) + max_record_id)
-
-# Cast record_id to Integer
-df_transformed = df_transformed.withColumn("record_id", col("record_id").cast(IntegerType()))
+# Generate unique record_id using monotonically_increasing_id()
+df_transformed = df_transformed.withColumn("record_id", (monotonically_increasing_id() + max_record_id).cast(IntegerType()))
 
 # Add PeakHour and OffHour columns based on `ingestion_timestamp`
 df_transformed = df_transformed.withColumn(
     "peakhour",
-    when((hour(col("timedetails")) >= 7) & (hour(col("timedetails")) < 9), 1).otherwise(0)
+    when((hour(col("ingestion_timestamp")) >= 7) & (hour(col("ingestion_timestamp")) < 9), 1).otherwise(0)
 )
 
 df_transformed = df_transformed.withColumn(
     "offhour",
-    when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1).otherwise(0)
+    when((hour(col("ingestion_timestamp")) >= 16) & (hour(col("ingestion_timestamp")) < 19), 1).otherwise(0)
 )
+df_transformed.show()
 
 # Debugging: Ensure record_id is not NULL before writing
 df_transformed.select("record_id", "timedetails", "route", "delay_time", "peakhour", "offhour").show(10)
@@ -61,7 +58,4 @@ expected_columns = ["record_id", "timedetails", "line", "status", "reason", "del
 df_final = df_transformed.select(*expected_columns)
 
 # Append data into the existing Hive table
-df_final.write.format("hive").mode("append").saveAsTable("default.TFL_Underground_Result_N")
-
-# Stop Spark session
-spark.stop()
+df_final.write.mode("append").insertInto("default.TFL_Underground_Result_N")
