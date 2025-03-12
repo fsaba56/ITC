@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, current_timestamp, row_number
-from pyspark.sql.window import Window
+from pyspark.sql.functions import monotonically_increasing_id
 
 # Initialize Spark Session with Hive Support
 spark = SparkSession.builder \
@@ -29,47 +29,42 @@ if last_recordid is None:
 # Example Transformations
 print("Step 2: Performing transformations...")
 
-# Step 1: Create a window specification to generate sequential row numbers
-windowSpec = Window.orderBy("timedetails")  # Adjust this to your required ordering column
-
-# Step 2: Add row_number as the record_id, starting from last_recordid + 1
-df_transformed = df_source.withColumn("record_id", row_number().over(windowSpec) + last_recordid)
-
-
-   
+# Add Auto-Increment Column
+df_source = df_source.withColumn("id", monotonically_increasing_id())
+  
 # 2. Filtering records based on a condition (Example: removing NULL values)
-df_transformed = df_transformed.filter(col("route").isNotNull())
+df_source = df_source.filter(col("route").isNotNull())
 
 # 3. Adding an "ingestion_timestamp" column
-df_transformed = df_transformed.withColumn("ingestion_timestamp", current_timestamp())
+df_source = df_source.withColumn("ingestion_timestamp", current_timestamp())
 
 # 4. Filter out rows where the timestamp column is a specific value (e.g., 'Timestamp')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'timedetails')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'timedetails String')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'status String')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'route String')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'reason String')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'line String')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'id int')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'delay_time String')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'STORED AS TEXTFILE')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'ROW FORMAT DELIMITED')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'LOCATION /tmp/big_datajan2025/TFL/TFL_UndergroundRecord')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'LINES TERMINATED BY \n')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'FIELD TERMINATED BY ')
-df_transformed = df_transformed.filter(df_transformed.timedetails != 'CREATE EXTERNAL TABLE default.tfl_ugrFullScoop (')
+df_source = df_source.filter(df_source.timedetails != 'timedetails')
+df_source = df_source.filter(df_source.timedetails != 'timedetails String')
+df_source = df_source.filter(df_source.timedetails != 'status String')
+df_source = df_source.filter(df_source.timedetails != 'route String')
+df_source = df_source.filter(df_source.timedetails != 'reason String')
+df_source = df_source.filter(df_source.timedetails != 'line String')
+df_source = df_source.filter(df_source.timedetails != 'id int')
+df_source = df_source.filter(df_source.timedetails != 'delay_time String')
+df_source = df_source.filter(df_source.timedetails != 'STORED AS TEXTFILE')
+df_source = df_source.filter(df_source.timedetails != 'ROW FORMAT DELIMITED')
+df_source = df_source.filter(df_source.timedetails != 'LOCATION /tmp/big_datajan2025/TFL/TFL_UndergroundRecord')
+df_source = df_source.filter(df_source.timedetails != 'LINES TERMINATED BY \n')
+df_source = df_source.filter(df_source.timedetails != 'FIELD TERMINATED BY ')
+df_source = df_source.filter(df_source.timedetails != 'CREATE EXTERNAL TABLE default.tfl_ugrFullScoop (')
 
 # 5. Filter out rows where the timestamp is NULL
-df_transformed = df_transformed.filter(df_transformed.timedetails.isNotNull())
+df_source = df_source.filter(df_source.timedetails.isNotNull())
 
 # Show transformed data
-df_transformed.show()
+df_source.show()
 
 # Write the transformed data back into another Hive table
 print("Step 3: Writing transformed data to Hive table")
 #df_transformed.write.mode("overwrite").format("hive").saveAsTable(target_table)
 # Use insertInto to append or overwrite the data
-df_transformed.write.mode("overwrite").format("hive").insertInto(target_table)
+df_source.write.mode("overwrite").format("hive").insertInto(target_table)
 print("ETL Process Completed Successfully!")
 
 # Stop Spark Session
