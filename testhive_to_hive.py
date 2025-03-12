@@ -16,7 +16,7 @@ TARGET_TABLE = "TFL_Underground_Result_N"
 
 # Load data from the source table
 df_source = spark.sql("SELECT * FROM default.tfl_undergroundrecord")
-
+df_source.show()
 # Add an "ingestion_timestamp" column
 df_transformed = df_source.withColumn("ingestion_timestamp", current_timestamp())
 
