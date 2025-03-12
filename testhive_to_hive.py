@@ -78,4 +78,4 @@ expected_columns = ["record_id", "timedetails", "line", "status", "reason", "del
 df_final = df_transformed.select(*expected_columns)
 
 # Append data into the existing Hive table
-df_final.write.mode("append").insertInto("default.TFL_Underground_Result_N")
+df_new_data.write.format("hive").mode("append").saveAsTable("bigdata_sabaitc.tflpyspark")
