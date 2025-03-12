@@ -29,22 +29,21 @@ df_transformed = df_transformed.filter(col("route").isNotNull())
 
 # Retrieve the maximum existing record_id from the target table
 try:
-    max_record_id = spark.sql("SELECT MAX(record_id) FROM default.TFL_Underground_Result_N").collect()[0][0]
-    if max_record_id is None:
-        max_record_id = 0  # If table is empty, start from 1
+    max_record_id = spark.sql("SELECT MAX(record_id) FROM default.TFL_Underground_Result_N").collect()[0][0]    
+    if max_record_id is None:  # If the table is empty, start from 0
+        max_record_id = 1
 except:
-    max_record_id = 0  # If table doesn't exist, start from 1
-
+    max_record_id = 1  # If table doesn't exist, start from 0
 
 # Create a unique key based on "timedetails" and "route" to avoid inserting duplicates
 window_spec = Window.partitionBy("timedetails", "route").orderBy("ingestion_timestamp")
-df_transformed = df_transformed.withColumn("row_num", row_number().over(window_spec))
+df_transformed = df_transformed.withColumn("row_num", row_number().over(window_spec)+ (1 if max_record_id == 0 else max_record_id)).cast(IntegerType()))
+
+# Generate an auto-incrementing `record_id`
+#df_transformed = df_transformed.withColumn("record_id", (row_number().over(Window.orderBy("ingestion_timestamp")) + max_record_id).cast(IntegerType()))
 
 # Keep only the first occurrence of each "timedetails" and "route"
 df_transformed = df_transformed.filter(col("row_num") == 1).drop("row_num")
-
-# Generate an auto-incrementing `record_id`
-df_transformed = df_transformed.withColumn("record_id", (row_number().over(Window.orderBy("ingestion_timestamp")) + max_record_id).cast(IntegerType()))
 
 # Remove rows where 'timedetails' contains "timedetails" OR is NULL/empty
 df_transformed = df_transformed.filter(
