@@ -15,12 +15,12 @@ SOURCE_TABLE = "tfl_undergroundrecord"
 TARGET_TABLE = "tfl_underground_result_n"
 
 # Step 1: Read latest data from the source table
-df_source = spark.sql("SELECT * FROM HIVE_DB.tfl_undergroundrecord")
+df_source = spark.sql("SELECT * FROM default.tfl_undergroundrecord")
 df_source = df_source.withColumn("ingestion_timestamp", current_timestamp())
 
 # Step 2: Read existing data from the target table (if exists)
 try:
-    df_target = spark.sql("SELECT * FROM HIVE_DB.tfl_underground_result_n")
+    df_target = spark.sql("SELECT * FROM default.tfl_underground_result_n")
     target_exists = True
 except:
     target_exists = False  # Table does not exist yet
@@ -49,7 +49,7 @@ if target_exists:
 
 # Step 5: Get max record_id from target table (to continue numbering)
 if target_exists:
-    max_record_id = spark.sql("SELECT MAX(record_id) FROM HIVE_DB.tfl_underground_result_n").collect()[0][0]
+    max_record_id = spark.sql("SELECT MAX(record_id) FROM default.tfl_underground_result_n").collect()[0][0]
     max_record_id = max_record_id if max_record_id else 0  # If empty, start from 1
 else:
     max_record_id = 0  # If table doesn't exist, start from 1
@@ -72,6 +72,6 @@ expected_columns = ["record_id", "timedetails", "line", "status", "reason", "del
 df_final = df_transformed.select(*expected_columns)
 
 # Step 9: Append only new data into the existing Hive table
-df_final.write.format("hive").mode("append").saveAsTable("HIVE_DB.tfl_underground_result_n")
+df_final.write.format("hive").mode("append").saveAsTable("default.tfl_underground_result_n")
 
 print("Incremental Load Completed Successfully!")
