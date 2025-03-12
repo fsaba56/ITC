@@ -49,9 +49,6 @@ df_transformed = df_transformed.withColumn("record_id", col("record_id").cast(In
 # Generate an auto-incrementing `record_id`
 #df_transformed = df_transformed.withColumn("record_id", (row_number().over(Window.orderBy("ingestion_timestamp")) + max_record_id).cast(IntegerType()))
 
-# Keep only the first occurrence of each "timedetails" and "route"
-df_transformed = df_transformed.filter(col("row_num") == 1).drop("row_num")
-
 # Remove rows where 'timedetails' contains "timedetails" OR is NULL/empty
 df_transformed = df_transformed.filter(
     (~lower(col("timedetails")).contains("timedetails")) &  # Remove rows containing "timedetails"
