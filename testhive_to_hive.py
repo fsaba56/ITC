@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, current_timestamp, regexp_replace, monotonically_increasing_id, when, hour
+from pyspark.sql.functions import col, current_timestamp, regexp_replace, row_number, when, hour, trim, lower
 from pyspark.sql.window import Window
 from pyspark.sql.types import IntegerType
 
@@ -35,8 +35,23 @@ try:
 except:
     max_record_id = 0  # If table doesn't exist, start from 1
 
-# Generate unique record_id using monotonically_increasing_id()
-df_transformed = df_transformed.withColumn("record_id", (monotonically_increasing_id() + max_record_id).cast(IntegerType()))
+
+# Create a unique key based on "timedetails" and "route" to avoid inserting duplicates
+window_spec = Window.partitionBy("timedetails", "route").orderBy("ingestion_timestamp")
+df_transformed = df_transformed.withColumn("row_num", row_number().over(window_spec))
+
+# Keep only the first occurrence of each "timedetails" and "route"
+df_transformed = df_transformed.filter(col("row_num") == 1).drop("row_num")
+
+# Generate an auto-incrementing `record_id`
+df_transformed = df_transformed.withColumn("record_id", (row_number().over(Window.orderBy("ingestion_timestamp")) + max_record_id).cast(IntegerType()))
+
+# Remove rows where 'timedetails' contains "timedetails" OR is NULL/empty
+df_transformed = df_transformed.filter(
+    (~lower(col("timedetails")).contains("timedetails")) &  # Remove rows containing "timedetails"
+    (col("timedetails").isNotNull()) &  # Remove NULL values
+    (trim(col("timedetails")) != "")    # Remove empty values
+)
 
 # Add PeakHour and OffHour columns based on `ingestion_timestamp`
 df_transformed = df_transformed.withColumn(
