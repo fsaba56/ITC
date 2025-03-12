@@ -35,6 +35,10 @@ try:
 except:
     max_record_id = 1  # If table doesn't exist, start from 0
 
+
+# Keep only the first occurrence of each "timedetails" and "route"
+df_transformed = df_transformed.filter(col("row_num") == 1).drop("row_num")
+
 # Create a unique key based on "timedetails" and "route" to avoid inserting duplicates
 window_spec = Window.partitionBy("timedetails", "route").orderBy("ingestion_timestamp")
 
