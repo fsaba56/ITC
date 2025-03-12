@@ -27,27 +27,6 @@ df_transformed = df_transformed.withColumn("delay_time", regexp_replace(col("del
 # Remove NULL values from the route column
 df_transformed = df_transformed.filter(col("route").isNotNull())
 
-# Retrieve the maximum existing record_id from the target table
-try:
-    max_record_id = spark.sql("SELECT MAX(record_id) FROM default.TFL_Underground_Result_N").collect()[0][0]    
-    if max_record_id is None:  # If the table is empty, start from 0
-        max_record_id = 1
-except:
-    max_record_id = 1  # If table doesn't exist, start from 0
-
-# Create a unique key based on "timedetails" and "route" to avoid inserting duplicates
-window_spec = Window.partitionBy("timedetails", "route").orderBy("ingestion_timestamp")
-
-# Generate an auto-incrementing `record_id` (with correct casting applied to the column)
-df_transformed = df_transformed.withColumn(
-    "record_id", 
-    (row_number().over(window_spec) + (1 if max_record_id == 0 else max_record_id))
-)
-# Cast the 'record_id' column to Integer
-df_transformed = df_transformed.withColumn("record_id", col("record_id").cast(IntegerType()))
-
-# Generate an auto-incrementing `record_id`
-#df_transformed = df_transformed.withColumn("record_id", (row_number().over(Window.orderBy("ingestion_timestamp")) + max_record_id).cast(IntegerType()))
 
 # Remove rows where 'timedetails' contains "timedetails" OR is NULL/empty
 df_transformed = df_transformed.filter(
@@ -57,6 +36,27 @@ df_transformed = df_transformed.filter(
     (col("timedetails") != "") &
     (col("timedetails") != "N/A")
 )
+# Remove duplicates (based on key columns to prevent re-inserting same data)
+df_transformed = df_transformed.dropDuplicates(["timedetails", "line", "status", "reason", "delay_time", "route"])
+
+# Retrieve the max record_id from the target table
+try:
+    max_record_id = spark.sql(f"SELECT MAX(record_id) FROM {HIVE_DB}.{TARGET_TABLE}").collect()[0][0]
+    max_record_id = max_record_id if max_record_id else 0  # If table is empty, start from 1
+except:
+    max_record_id = 0  # If table doesn't exist, start from 1
+
+# Generate an auto-incrementing record_id starting from max_record_id + 1
+window_spec = Window.orderBy("ingestion_timestamp")
+df_transformed = df_transformed.withColumn("record_id", row_number().over(window_spec) + lit(max_record_id))
+
+# Ensure "record_id" is Integer
+df_transformed = df_transformed.withColumn("record_id", col("record_id").cast(IntegerType()))
+
+# Generate an auto-incrementing `record_id`
+#df_transformed = df_transformed.withColumn("record_id", (row_number().over(Window.orderBy("ingestion_timestamp")) + max_record_id).cast(IntegerType()))
+
+
 
 # Add PeakHour and OffHour columns based on `ingestion_timestamp`
 df_transformed = df_transformed.withColumn(
