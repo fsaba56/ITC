@@ -41,7 +41,7 @@ df_transformed = df_transformed.dropDuplicates(["timedetails", "line", "status",
 
 # Retrieve the max record_id from the target table
 try:
-    max_record_id = spark.sql(f"SELECT MAX(record_id) FROM {HIVE_DB}.{TARGET_TABLE}").collect()[0][0]
+    max_record_id = spark.sql("SELECT MAX(record_id) FROM default.TFL_Underground_Result_N").collect()[0][0]
     max_record_id = max_record_id if max_record_id else 0  # If table is empty, start from 1
 except:
     max_record_id = 0  # If table doesn't exist, start from 1
