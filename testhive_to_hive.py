@@ -53,7 +53,9 @@ df_transformed = df_transformed.withColumn("record_id", col("record_id").cast(In
 df_transformed = df_transformed.filter(
     (~lower(col("timedetails")).contains("timedetails")) &  # Remove rows containing "timedetails"
     (col("timedetails").isNotNull()) &  # Remove NULL values
-    (trim(col("timedetails")) != "")    # Remove empty values
+    (trim(col("timedetails")) != "") &  # Remove empty values
+    (col("timedetails") != "") &
+    (col("timedetails") != "N/A")
 )
 
 # Add PeakHour and OffHour columns based on `ingestion_timestamp`
