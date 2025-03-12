@@ -56,12 +56,12 @@ df_transformed = df_transformed.filter(
 # Add PeakHour and OffHour columns based on `ingestion_timestamp`
 df_transformed = df_transformed.withColumn(
     "peakhour",
-    when((hour(col("ingestion_timestamp")) >= 7) & (hour(col("ingestion_timestamp")) < 9), 1).otherwise(0)
+    when((hour(col("timedetails")) >= 7) & (hour(col("timedetails")) < 9), 1).otherwise(0)
 )
 
 df_transformed = df_transformed.withColumn(
     "offhour",
-    when((hour(col("ingestion_timestamp")) >= 16) & (hour(col("ingestion_timestamp")) < 19), 1).otherwise(0)
+    when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1).otherwise(0)
 )
 df_transformed.show()
 
