@@ -1,57 +1,67 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, current_timestamp, row_number, regexp_replace
+from pyspark.sql.functions import col, current_timestamp, regexp_replace, row_number, when, hour
 from pyspark.sql.window import Window
-from pyspark.sql.functions import monotonically_increasing_id, col, lit, max as spark_max
+from pyspark.sql.types import IntegerType
 
 # Create Spark session with Hive support
 spark = SparkSession.builder \
-    .appName("Hive Table Insert with Auto Increment Order ID") \
+    .appName("Hive Table Insert with Auto Increment Record ID") \
     .enableHiveSupport() \
     .getOrCreate()
 
 # Define database and tables
 HIVE_DB = "default"
 SOURCE_TABLE = "tfl_undergroundrecord"
-TARGET_TABLE = "tfl_underground_result"
+TARGET_TABLE = "TFL_Underground_Result_N"
 
-# Load data from the source table (Fixed Syntax)
-df_source = spark.sql("SELECT * FROM {}.{}".format(HIVE_DB, SOURCE_TABLE))
+# Load data from the source table
+df_source = spark.sql(f"SELECT * FROM {HIVE_DB}.{SOURCE_TABLE}")
 
 # Add an "ingestion_timestamp" column
-df_with_id = df_source.withColumn("ingestion_timestamp", current_timestamp())
+df_transformed = df_source.withColumn("ingestion_timestamp", current_timestamp())
 
-# Remove all leading and trailing quotes from the "route" column
-df_with_id = df_with_id.withColumn("route", regexp_replace(col("route"), r'^[\'"]+|[\'"]+$', ''))
+# Remove ALL leading and trailing quotes from "route" and "delay_time" columns
+df_transformed = df_transformed.withColumn("route", regexp_replace(col("route"), r'^[\'"]+|[\'"]+$', ''))
+df_transformed = df_transformed.withColumn("delay_time", regexp_replace(col("delay_time"), r'^[\'"]+|[\'"]+$', ''))
 
 # Remove NULL values from the route column
-df_with_id = df_with_id.filter(col("route").isNotNull())
+df_transformed = df_transformed.filter(col("route").isNotNull())
 
-# Add Auto-Increment Column
-df_with_id = df_with_id.withColumn("id", monotonically_increasing_id())
-df_with_id.show()
-
-# Retrieve the maximum existing order_id from the target table
+# Retrieve the maximum existing record_id from the target table
 try:
-    max_order_id = spark.sql("SELECT MAX(id) FROM {}.{}".format(HIVE_DB, TARGET_TABLE)).collect()[0][0]
-    if max_order_id is None:
-        max_order_id = 0  # If table is empty, start from 1
+    max_record_id = spark.sql(f"SELECT MAX(record_id) FROM {HIVE_DB}.{TARGET_TABLE}").collect()[0][0]
+    if max_record_id is None:
+        max_record_id = 0  # If table is empty, start from 1
 except:
-    max_order_id = 0  # If table doesn't exist, start from 1
+    max_record_id = 0  # If table doesn't exist, start from 1
 
-# Generate new IDs, starting from max_id
-new_df = df_with_id.withColumn("record_id", monotonically_increasing_id() + lit(max_order_id + 1))
+# Generate an auto-incremented record_id based on row_number() with deterministic ordering
+window_spec = Window.orderBy("timedetails", "route", "delay_time")  # Ordering to avoid duplicate IDs
+df_transformed = df_transformed.withColumn("record_id", row_number().over(window_spec) + max_record_id)
 
+# Cast record_id to Integer
+df_transformed = df_transformed.withColumn("record_id", col("record_id").cast(IntegerType()))
 
-# Debugging: Print the actual column names before selecting
-print("DataFrame Columns: ", df_with_id.columns)
-df_with_id.printSchema()
+# Add PeakHour and OffHour columns based on `ingestion_timestamp`
+df_transformed = df_transformed.withColumn(
+    "peakhour",
+    when((hour(col("timedetails")) >= 7) & (hour(col("timedetails")) < 9), 1).otherwise(0)
+)
+
+df_transformed = df_transformed.withColumn(
+    "offhour",
+    when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1).otherwise(0)
+)
+
+# Debugging: Ensure record_id is not NULL before writing
+df_transformed.select("record_id", "timedetails", "route", "delay_time", "peakhour", "offhour").show(10)
 
 # Ensure column order matches Hive table
-expected_columns = ["order_id", "timedetails", "line", "status", "reason", "delay_time", "route", "ingestion_timestamp"]
-df_with_id = df_with_id.select(*expected_columns)
+expected_columns = ["record_id", "timedetails", "line", "status", "reason", "delay_time", "route", "ingestion_timestamp", "peakhour", "offhour"]
+df_final = df_transformed.select(*expected_columns)
 
 # Append data into the existing Hive table
-df_with_id.write.mode("append").insertInto("{}.{}".format(HIVE_DB, TARGET_TABLE))
+df_final.write.mode("append").insertInto(f"{HIVE_DB}.{TARGET_TABLE}")
 
 # Stop Spark session
 spark.stop()
