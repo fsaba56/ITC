@@ -37,7 +37,14 @@ except:
 
 # Create a unique key based on "timedetails" and "route" to avoid inserting duplicates
 window_spec = Window.partitionBy("timedetails", "route").orderBy("ingestion_timestamp")
-df_transformed = df_transformed.withColumn("row_num", row_number().over(window_spec)+ (1 if max_record_id == 0 else max_record_id)).cast(IntegerType())
+
+# Generate an auto-incrementing `record_id` (with correct casting applied to the column)
+df_transformed = df_transformed.withColumn(
+    "record_id", 
+    (row_number().over(window_spec) + (1 if max_record_id == 0 else max_record_id))
+)
+# Cast the 'record_id' column to Integer
+df_transformed = df_transformed.withColumn("record_id", col("record_id").cast(IntegerType()))
 
 # Generate an auto-incrementing `record_id`
 #df_transformed = df_transformed.withColumn("record_id", (row_number().over(Window.orderBy("ingestion_timestamp")) + max_record_id).cast(IntegerType()))
