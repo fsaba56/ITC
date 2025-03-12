@@ -61,7 +61,7 @@ expected_columns = ["record_id", "timedetails", "line", "status", "reason", "del
 df_final = df_transformed.select(*expected_columns)
 
 # Append data into the existing Hive table
-df_final.write.mode("append").insertInto("default.TFL_Underground_Result_N")
+df_final.write.mode("append").saveAsTable("default.TFL_Underground_Result_N")
 
 # Stop Spark session
 spark.stop()
