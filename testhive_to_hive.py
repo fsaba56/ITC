@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, current_timestamp, regexp_replace, row_number, when, hour, trim, lower, lit, expr, to_timestamp
+from pyspark.sql.functions import col, current_timestamp, regexp_replace, row_number, when, hour, trim, lower, lit
 from pyspark.sql.window import Window
 from pyspark.sql.types import IntegerType
 
@@ -72,21 +72,11 @@ df_transformed = df_transformed.withColumn("record_id", row_number().over(window
 # Ensure "record_id" is Integer
 df_transformed = df_transformed.withColumn("record_id", expr("CAST(record_id AS INT)"))
 
-df_transformed = df_transformed.withColumn(
-    "peakhour",
-    when((hour(col("timedetails")) >= 7) & (hour(col("timedetails")) < 9), 1).otherwise(0)
-)
-
-df_transformed = df_transformed.withColumn(
-    "offhour",
-    when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1).otherwise(0)
-)
-
 # Debugging: Ensure record_id and new columns are properly created before writing
-df_transformed.select("record_id", "timedetails", "route", "delay_time", "peakhour", "offhour").show(10)
+df_transformed.select("record_id", "timedetails", "route", "delay_time").show(10)
 
 # Ensure column order matches Hive table
-expected_columns = ["record_id", "timedetails", "line", "status", "reason", "delay_time", "route", "ingestion_timestamp", "peakhour", "offhour"]
+expected_columns = ["record_id", "timedetails", "line", "status", "reason", "delay_time", "route", "ingestion_timestamp"]
 df_final = df_transformed.select(*expected_columns)
 
 # Append data into the existing Hive table
