@@ -41,9 +41,7 @@ df_transformed = df_transformed.filter(col("route").isNotNull())
 df_transformed = df_transformed.filter(
     (~lower(col("timedetails")).contains("timedetails")) &  # Remove rows containing "timedetails"
     (col("timedetails").isNotNull()) &  # Remove NULL values
-    (trim(col("timedetails")) != "") &  # Remove empty values
-    (col("timedetails") != "") & 
-    (col("timedetails") != "N/A")
+    (trim(col("timedetails")) != "")    # Remove empty values
 )
 # Remove duplicates (based on key columns to prevent re-inserting same data)
 df_transformed = df_transformed.dropDuplicates(["timedetails", "line", "status", "reason", "delay_time", "route"])
