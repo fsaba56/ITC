@@ -54,6 +54,7 @@ df_transformed = df_transformed.filter(
 )
 # Remove duplicates (based on key columns to prevent re-inserting same data)
 df_transformed = df_transformed.dropDuplicates(["timedetails", "line", "status", "reason", "delay_time", "route"])
+
 # Step 4: Remove duplicates based on key columns (Ensure only NEW data is inserted)
 key_columns = ["timedetails", "line", "status", "reason", "delay_time", "route"]
 
@@ -82,20 +83,16 @@ df_transformed = df_transformed.withColumn("record_id", expr("CAST(record_id AS 
 # Generate an auto-incrementing `record_id`
 #df_transformed = df_transformed.withColumn("record_id", (row_number().over(Window.orderBy("ingestion_timestamp")) + max_record_id).cast(IntegerType()))
 
-# Convert the 'timedetails' column to timestamp
-df_transformed = df_transformed.withColumn("timedetails", to_timestamp(col("timedetails")))
-
-
 # Add PeakHour and OffHour columns based on `ingestion_timestamp`
-df_transformed = df_transformed.withColumn(
-    "peakhour",
-    when((hour(col("timedetails")) >= 7) & (hour(col("timedetails")) < 9), 1).otherwise(0)
-)
+#df_transformed = df_transformed.withColumn(
+ #   "peakhour",
+  #  when((hour(col("timedetails")) >= 7) & (hour(col("timedetails")) < 9), 1).otherwise(0)
+#)
 
-df_transformed = df_transformed.withColumn(
-    "offhour",
-    when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1).otherwise(0)
-)
+#df_transformed = df_transformed.withColumn(
+ #   "offhour",
+  #  when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1).otherwise(0)
+#)
 df_transformed.show()
 
 # Debugging: Ensure record_id is not NULL before writing
