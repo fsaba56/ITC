@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, current_timestamp, regexp_replace, row_number, when, hour, trim, lower, lit, expr
+from pyspark.sql.functions import col, current_timestamp, regexp_replace, row_number, when, hour, trim, lower, lit, expr, to_timestamp
 from pyspark.sql.window import Window
 from pyspark.sql.types import IntegerType
 
@@ -71,6 +71,36 @@ df_transformed = df_transformed.withColumn("record_id", row_number().over(window
 
 # Ensure "record_id" is Integer
 df_transformed = df_transformed.withColumn("record_id", expr("CAST(record_id AS INT)"))
+
+
+# Convert 'timedetails' to timestamp if not already in timestamp format
+df_transformed = df_transformed.withColumn("timedetails", to_timestamp(col("timedetails")))
+
+# Add PeakHour and OffHour columns based on `timedetails`
+df_transformed = df_transformed.withColumn(
+    "peakhour",
+    when((hour(col("timedetails")) >= 7) & (hour(col("timedetails")) < 9), 1).otherwise(0)
+)
+
+df_transformed = df_transformed.withColumn(
+    "offhour",
+    when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1).otherwise(0)
+)
+
+# For other hours (not peak or off hours), assign peakhour = 0, offhour = 1
+df_transformed = df_transformed.withColumn(
+    "peakhour",
+    when((hour(col("timedetails")) >= 7) & (hour(col("timedetails")) < 9), 1)
+    .when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 0)
+    .otherwise(0)
+)
+
+df_transformed = df_transformed.withColumn(
+    "offhour",
+    when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1)
+    .otherwise(1)
+)
+
 
 # Debugging: Ensure record_id and new columns are properly created before writing
 df_transformed.select("record_id", "timedetails", "route", "delay_time").show(10)
