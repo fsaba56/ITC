@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import expr, col, current_timestamp, regexp_replace, row_number, when, hour, trim, lower, lit
+
 from pyspark.sql.window import Window
 from pyspark.sql.types import IntegerType
 
@@ -59,6 +60,7 @@ window_spec = Window.orderBy("ingestion_timestamp")
 df_transformed = df_transformed.withColumn("record_id", row_number().over(window_spec) + lit(max_record_id))
 df_transformed = df_transformed.withColumn("record_id", expr("CAST(record_id AS INT)"))
 
+# Add PeakHour and OffHour columns based on `timedetails`
 # Add PeakHour and OffHour columns based on `timedetails`
 df_transformed = df_transformed.withColumn(
     "peakhour",
