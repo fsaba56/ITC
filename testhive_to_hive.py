@@ -107,7 +107,7 @@ df_transformed = df_transformed.withColumn(
 df_transformed.select("record_id", "timedetails", "route", "delay_time").show()
 
 # Ensure column order matches Hive table
-expected_columns = ["record_id", "timedetails", "line", "status", "reason", "delay_time", "route", "ingestion_timestamp", "peakhour", "offhour"]
+expected_columns = ["record_id", "timedetails", "line", "status", "reason", "delay_time", "route", "ingestion_timestamp"]
 df_final = df_transformed.select(*expected_columns)
 
 # Append data into the existing Hive table
