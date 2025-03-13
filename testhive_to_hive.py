@@ -45,7 +45,8 @@ df_transformed = df_transformed.filter(
     (col("timedetails") != "") & 
     (col("timedetails") != "N/A")
 )
-
+# Remove duplicates (based on key columns to prevent re-inserting same data)
+df_transformed = df_transformed.dropDuplicates(["timedetails", "line", "status", "reason", "delay_time", "route"])
 
 # Step 4: Remove duplicates based on key columns (Ensure only NEW data is inserted)
 key_columns = ["timedetails", "line", "status", "reason", "delay_time", "route"]
@@ -101,12 +102,9 @@ df_transformed = df_transformed.withColumn(
   #  when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1)
    # .otherwise(1)
 #)
-# Remove duplicates (based on key columns to prevent re-inserting same data)
-df_transformed = df_transformed.dropDuplicates(["timedetails", "line", "status", "reason", "delay_time", "route"])
-
 
 # Debugging: Ensure record_id and new columns are properly created before writing
-df_transformed.select("record_id", "timedetails", "route", "delay_time", "peakhour", "offhour").show(10)
+df_transformed.select("record_id", "timedetails", "route", "delay_time").show()
 
 # Ensure column order matches Hive table
 expected_columns = ["record_id", "timedetails", "line", "status", "reason", "delay_time", "route", "ingestion_timestamp", "peakhour", "offhour"]
