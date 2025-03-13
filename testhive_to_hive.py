@@ -46,8 +46,6 @@ df_transformed = df_transformed.filter(
     (col("timedetails") != "N/A")
 )
 
-# Remove duplicates (based on key columns to prevent re-inserting same data)
-df_transformed = df_transformed.dropDuplicates(["timedetails", "line", "status", "reason", "delay_time", "route"])
 
 # Step 4: Remove duplicates based on key columns (Ensure only NEW data is inserted)
 key_columns = ["timedetails", "line", "status", "reason", "delay_time", "route"]
@@ -103,6 +101,8 @@ df_transformed = df_transformed.withColumn(
   #  when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1)
    # .otherwise(1)
 #)
+# Remove duplicates (based on key columns to prevent re-inserting same data)
+df_transformed = df_transformed.dropDuplicates(["timedetails", "line", "status", "reason", "delay_time", "route"])
 
 
 # Debugging: Ensure record_id and new columns are properly created before writing
