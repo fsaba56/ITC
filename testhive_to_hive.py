@@ -57,7 +57,7 @@ else:
 # Step 6: Assign new `record_id`, continuing from the last inserted ID
 window_spec = Window.orderBy("ingestion_timestamp")
 df_transformed = df_transformed.withColumn("record_id", row_number().over(window_spec) + lit(max_record_id))
-df_transformed = df_transformed.withColumn("record_id", col("record_id").cast(IntegerType()))
+df_transformed = df_transformed.withColumn("record_id", expr("CAST(record_id AS INT)"))
 
 # Step 7: Add PeakHour and OffHour columns
 df_transformed = df_transformed.withColumn(
