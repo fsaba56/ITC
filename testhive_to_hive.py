@@ -75,6 +75,8 @@ df_transformed = df_transformed.withColumn("record_id", expr("CAST(record_id AS 
 # Generate an auto-incrementing `record_id`
 #df_transformed = df_transformed.withColumn("record_id", (row_number().over(Window.orderBy("ingestion_timestamp")) + max_record_id).cast(IntegerType()))
 
+# Convert the 'timedetails' column to timestamp
+df_transformed = df_transformed.withColumn("timedetails", to_timestamp(col("timedetails")))
 
 
 # Add PeakHour and OffHour columns based on `ingestion_timestamp`
