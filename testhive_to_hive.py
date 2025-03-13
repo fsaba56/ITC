@@ -102,7 +102,7 @@ df_transformed = df_transformed.withColumn(
   #  when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1)
    # .otherwise(1)
 #)
-
+df_transformed.show()
 # Debugging: Ensure record_id and new columns are properly created before writing
 df_transformed.select("record_id", "timedetails", "route", "delay_time").show()
 
