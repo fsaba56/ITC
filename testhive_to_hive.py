@@ -72,8 +72,8 @@ df_transformed = df_transformed.withColumn("record_id", expr("CAST(record_id AS 
 
 
 # Convert 'timedetails' to timestamp if not already in timestamp format
-# Use the full path to the function to avoid conflicts
-df_transformed = df_transformed.withColumn("timedetails", F.to_timestamp(F.col("timedetails")))
+# Do NOT convert timedetails to timestamp
+df_transformed = df_transformed.withColumn("timedetails", col("timedetails"))
 
 # Add PeakHour and OffHour columns based on `timedetails`
 # Replace 'hour' with 'F.hour'
