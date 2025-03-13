@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
 from pyspark.sql.functions import col, current_timestamp, regexp_replace, row_number, when, hour, trim, lower, lit, expr, to_timestamp
 from pyspark.sql.window import Window
 from pyspark.sql.types import IntegerType
@@ -74,7 +75,8 @@ df_transformed = df_transformed.withColumn("record_id", expr("CAST(record_id AS 
 
 
 # Convert 'timedetails' to timestamp if not already in timestamp format
-df_transformed = df_transformed.withColumn("timedetails", to_timestamp(col("timedetails")))
+# Use the full path to the function to avoid conflicts
+df_transformed = df_transformed.withColumn("timedetails", F.to_timestamp(F.col("timedetails")))
 
 # Add PeakHour and OffHour columns based on `timedetails`
 df_transformed = df_transformed.withColumn(
