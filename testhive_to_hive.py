@@ -5,7 +5,14 @@ from pyspark.sql.types import IntegerType
 
 # Create Spark session with Hive support
 spark = SparkSession.builder \
-    .appName("Hive Table Insert with Auto Increment Record ID") \
+    .appName("Hive Table Insert with Auto Increment ID") \
+    .enableHiveSupport() \
+    .getOrCreate()
+
+spark.stop()
+
+spark = SparkSession.builder \
+    .appName("Hive Table Insert with Auto Increment ID") \
     .enableHiveSupport() \
     .getOrCreate()
 
