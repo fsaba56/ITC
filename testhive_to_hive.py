@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, current_timestamp, regexp_replace, row_number, when, hour, trim, lower, lit
+from pyspark.sql.functions import col, current_timestamp, regexp_replace, row_number, when, hour, trim, lower, lit, expr
 from pyspark.sql.window import Window
 from pyspark.sql.types import IntegerType
 
@@ -69,7 +69,8 @@ window_spec = Window.orderBy("ingestion_timestamp")
 df_transformed = df_transformed.withColumn("record_id", row_number().over(window_spec) + lit(max_record_id))
 
 # Ensure "record_id" is Integer
-df_transformed = df_transformed.withColumn("record_id", col("record_id").cast(IntegerType()))
+df_transformed = df_transformed.withColumn("record_id", expr("CAST(record_id AS INT)"))
+
 
 # Generate an auto-incrementing `record_id`
 #df_transformed = df_transformed.withColumn("record_id", (row_number().over(Window.orderBy("ingestion_timestamp")) + max_record_id).cast(IntegerType()))
