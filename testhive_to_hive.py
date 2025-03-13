@@ -60,8 +60,7 @@ window_spec = Window.orderBy("ingestion_timestamp")
 df_transformed = df_transformed.withColumn("record_id", row_number().over(window_spec) + lit(max_record_id))
 df_transformed = df_transformed.withColumn("record_id", expr("CAST(record_id AS INT)"))
 
-# Add PeakHour and OffHour columns based on `timedetails`
-# Add PeakHour and OffHour columns based on `timedetails`
+# Add PeakHour and OffHour columns based on `ingestion_timestamp`
 df_transformed = df_transformed.withColumn(
     "peakhour",
     when((hour(col("timedetails")) >= 7) & (hour(col("timedetails")) < 9), 1).otherwise(0)
@@ -71,6 +70,8 @@ df_transformed = df_transformed.withColumn(
     "offhour",
     when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1).otherwise(0)
 )
+df_transformed.show()
+
 # Step 8: Ensure column order matches Hive table
 expected_columns = ["record_id", "timedetails", "line", "status", "reason", "delay_time", "route", "ingestion_timestamp", "peakhour", "offhour"]
 df_final = df_transformed.select(*expected_columns)
