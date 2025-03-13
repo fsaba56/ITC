@@ -102,14 +102,14 @@ df_transformed = df_transformed.withColumn(
 #)
 df_transformed.show()
 # Debugging: Ensure record_id and new columns are properly created before writing
-#df_transformed.select("record_id", "timedetails", "route", "delay_time").show()
+df_transformed.select("record_id", "timedetails", "route", "delay_time").show()
 
 # Ensure column order matches Hive table
-#expected_columns = ["record_id", "timedetails", "line", "status", "reason", "delay_time", "route", "ingestion_timestamp"]
-#df_final = df_transformed.select(*expected_columns)
+expected_columns = ["record_id", "timedetails", "line", "status", "reason", "delay_time", "route", "ingestion_timestamp"]
+df_final = df_transformed.select(*expected_columns)
 
 # Append data into the existing Hive table
-df_transformed.write.format("hive").mode("append").saveAsTable("default.TFL_Underground_Result_N")
+df_final.write.format("hive").mode("append").saveAsTable("default.TFL_Underground_Result_N")
 
 # Stop Spark session at the end of the script
 spark.stop()
