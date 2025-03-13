@@ -79,36 +79,37 @@ df_transformed = df_transformed.withColumn("record_id", expr("CAST(record_id AS 
 df_transformed = df_transformed.withColumn("timedetails", F.to_timestamp(F.col("timedetails")))
 
 # Add PeakHour and OffHour columns based on `timedetails`
+# Replace 'hour' with 'F.hour'
 df_transformed = df_transformed.withColumn(
     "peakhour",
-    when((hour(col("timedetails")) >= 7) & (hour(col("timedetails")) < 9), 1).otherwise(0)
+    F.when((F.hour(F.col("timedetails")) >= 7) & (F.hour(F.col("timedetails")) < 9), 1).otherwise(0)
 )
 
 df_transformed = df_transformed.withColumn(
     "offhour",
-    when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1).otherwise(0)
+    F.when((F.hour(F.col("timedetails")) >= 16) & (F.hour(F.col("timedetails")) < 19), 1).otherwise(0)
 )
 
 # For other hours (not peak or off hours), assign peakhour = 0, offhour = 1
-df_transformed = df_transformed.withColumn(
-    "peakhour",
-    when((hour(col("timedetails")) >= 7) & (hour(col("timedetails")) < 9), 1)
-    .when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 0)
-    .otherwise(0)
-)
+#df_transformed = df_transformed.withColumn(
+ #   "peakhour",
+  #  when((hour(col("timedetails")) >= 7) & (hour(col("timedetails")) < 9), 1)
+   # .when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 0)
+    #.otherwise(0)
+#)
 
-df_transformed = df_transformed.withColumn(
-    "offhour",
-    when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1)
-    .otherwise(1)
-)
+#df_transformed = df_transformed.withColumn(
+ #   "offhour",
+  #  when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1)
+   # .otherwise(1)
+#)
 
 
 # Debugging: Ensure record_id and new columns are properly created before writing
-df_transformed.select("record_id", "timedetails", "route", "delay_time").show(10)
+df_transformed.select("record_id", "timedetails", "route", "delay_time", "peakhour", "offhour").show(10)
 
 # Ensure column order matches Hive table
-expected_columns = ["record_id", "timedetails", "line", "status", "reason", "delay_time", "route", "ingestion_timestamp"]
+expected_columns = ["record_id", "timedetails", "line", "status", "reason", "delay_time", "route", "ingestion_timestamp", "peakhour", "offhour"]
 df_final = df_transformed.select(*expected_columns)
 
 # Append data into the existing Hive table
