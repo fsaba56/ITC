@@ -72,11 +72,6 @@ df_transformed = df_transformed.withColumn("record_id", row_number().over(window
 # Ensure "record_id" is Integer
 df_transformed = df_transformed.withColumn("record_id", expr("CAST(record_id AS INT)"))
 
-# Add PeakHour and OffHour columns based on `timedetails`
-df_transformed = df_transformed.withColumn(
-    "timedetails", to_timestamp(col("timedetails"))  # Convert timdetailed column to timestamp if it's not
-)
-
 df_transformed = df_transformed.withColumn(
     "peakhour",
     when((hour(col("timedetails")) >= 7) & (hour(col("timedetails")) < 9), 1).otherwise(0)
