@@ -22,7 +22,7 @@ df_source.show()
 
 # Step 2: Read existing data from the target table (if exists)
 try:
-    df_target = spark.sql("SELECT * FROM default.TFL_Underground_Result_N")
+    df_target = spark.sql("SELECT * FROM default.tfl_underground_result")
     target_exists = True
 except:
     target_exists = False  # Table does not exist yet
@@ -62,7 +62,7 @@ else:
 
 # Step 5: Ensure record_id starts from max_record_id if the table exists, otherwise from 1
 if target_exists:
-    max_record_id = spark.sql("SELECT MAX(record_id) FROM default.TFL_Underground_Result_N").collect()[0][0]
+    max_record_id = spark.sql("SELECT MAX(record_id) FROM default.tfl_underground_result").collect()[0][0]
     max_record_id = max_record_id if max_record_id else 0  # If empty, start from 1
 else:
     max_record_id = 0  # If table doesn't exist, start from 1
@@ -82,18 +82,18 @@ expected_columns = ["record_id", "timedetails", "line", "status", "reason", "del
 df_final = df_transformed.select(*expected_columns)
 
 # Ensure data is partitioned correctly (e.g., if you're using partitioned Hive tables)
-df_final.write.format("hive").mode("append").insertInto("default.TFL_Underground_Result_N")
+df_final.write.format("hive").mode("append").insertInto("default.tfl_underground_result")
 
 # Step 6: Add explicit partitioning if necessary
 # If your Hive table is partitioned by a column (e.g., "date"), make sure you are specifying the partition column when writing
-# df_final.write.partitionBy("date_column").format("hive").mode("append").insertInto("default.TFL_Underground_Result_N")
+# df_final.write.partitionBy("date_column").format("hive").mode("append").insertInto("default.tfl_underground_result")
 
 # Step 7: To avoid duplicate records, consider cleaning up your data before insertion
 # Optionally, you can deduplicate records based on the ingestion timestamp or other criteria:
 df_final = df_final.dropDuplicates(["timedetails", "line", "status", "reason", "delay_time", "route"])
 
 # Final write to Hive table
-df_final.write.format("hive").mode("append").saveAsTable("default.TFL_Underground_Result_N")
+df_final.write.format("hive").mode("append").saveAsTable("default.tfl_underground_result")
 
 # Stop Spark session at the end of the script
 spark.stop()
