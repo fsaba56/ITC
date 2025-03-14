@@ -77,15 +77,15 @@ df_transformed = df_transformed.withColumn("timedetails", col("timedetails"))
 
 # Add PeakHour and OffHour columns based on `timedetails`
 # Replace 'hour' with 'F.hour'
-df_transformed = df_transformed.withColumn(
-    "peakhour",
-    F.when((F.hour(F.col("timedetails")) >= 7) & (F.hour(F.col("timedetails")) < 9), 1).otherwise(0)
-)
+#df_transformed = df_transformed.withColumn(
+ #   "peakhour",
+  #  F.when((F.hour(F.col("timedetails")) >= 7) & (F.hour(F.col("timedetails")) < 9), 1).otherwise(0)
+#)
 
-df_transformed = df_transformed.withColumn(
-    "offhour",
-    F.when((F.hour(F.col("timedetails")) >= 16) & (F.hour(F.col("timedetails")) < 19), 1).otherwise(0)
-)
+#df_transformed = df_transformed.withColumn(
+ #   "offhour",
+  #  F.when((F.hour(F.col("timedetails")) >= 16) & (F.hour(F.col("timedetails")) < 19), 1).otherwise(0)
+#)
 
 # For other hours (not peak or off hours), assign peakhour = 0, offhour = 1
 #df_transformed = df_transformed.withColumn(
