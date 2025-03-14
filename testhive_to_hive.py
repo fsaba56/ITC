@@ -49,14 +49,18 @@ df_transformed = df_transformed.dropDuplicates(["timedetails", "line", "status",
 # Step 4: Remove duplicates based on key columns (Ensure only NEW data is inserted)
 key_columns = ["timedetails", "line", "status", "reason", "delay_time", "route"]
 
+# We need to use a more robust filtering approach for removing duplicates
 if target_exists:
     df_transformed = df_transformed.alias("new").join(
         df_target.alias("existing"),
         on=[df_transformed[col] == df_target[col] for col in key_columns],
         how="left_anti"  # Keeps only records that are NOT in the target
     )
+else:
+    # If target doesn't exist, we don't need the filter
+    df_transformed = df_transformed
 
-# Step 5: Get max record_id from target table (to continue numbering)
+# Step 5: Ensure record_id starts from max_record_id if the table exists, otherwise from 1
 if target_exists:
     max_record_id = spark.sql("SELECT MAX(record_id) FROM default.TFL_Underground_Result_N").collect()[0][0]
     max_record_id = max_record_id if max_record_id else 0  # If empty, start from 1
@@ -70,37 +74,6 @@ df_transformed = df_transformed.withColumn("record_id", row_number().over(window
 # Ensure "record_id" is Integer
 df_transformed = df_transformed.withColumn("record_id", expr("CAST(record_id AS INT)"))
 
-
-# Convert 'timedetails' to timestamp if not already in timestamp format
-# Do NOT convert timedetails to timestamp
-df_transformed = df_transformed.withColumn("timedetails", col("timedetails"))
-
-# Add PeakHour and OffHour columns based on `timedetails`
-# Replace 'hour' with 'F.hour'
-#df_transformed = df_transformed.withColumn(
- #   "peakhour",
-  #  F.when((F.hour(F.col("timedetails")) >= 7) & (F.hour(F.col("timedetails")) < 9), 1).otherwise(0)
-#)
-
-#df_transformed = df_transformed.withColumn(
- #   "offhour",
-  #  F.when((F.hour(F.col("timedetails")) >= 16) & (F.hour(F.col("timedetails")) < 19), 1).otherwise(0)
-#)
-
-# For other hours (not peak or off hours), assign peakhour = 0, offhour = 1
-#df_transformed = df_transformed.withColumn(
- #   "peakhour",
-  #  when((hour(col("timedetails")) >= 7) & (hour(col("timedetails")) < 9), 1)
-   # .when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 0)
-    #.otherwise(0)
-#)
-
-#df_transformed = df_transformed.withColumn(
- #   "offhour",
-  #  when((hour(col("timedetails")) >= 16) & (hour(col("timedetails")) < 19), 1)
-   # .otherwise(1)
-#)
-df_transformed.show()
 # Debugging: Ensure record_id and new columns are properly created before writing
 df_transformed.select("record_id", "timedetails", "route", "delay_time").show()
 
@@ -108,7 +81,18 @@ df_transformed.select("record_id", "timedetails", "route", "delay_time").show()
 expected_columns = ["record_id", "timedetails", "line", "status", "reason", "delay_time", "route", "ingestion_timestamp"]
 df_final = df_transformed.select(*expected_columns)
 
-# Append data into the existing Hive table
+# Ensure data is partitioned correctly (e.g., if you're using partitioned Hive tables)
+df_final.write.format("hive").mode("append").insertInto("default.TFL_Underground_Result_N")
+
+# Step 6: Add explicit partitioning if necessary
+# If your Hive table is partitioned by a column (e.g., "date"), make sure you are specifying the partition column when writing
+# df_final.write.partitionBy("date_column").format("hive").mode("append").insertInto("default.TFL_Underground_Result_N")
+
+# Step 7: To avoid duplicate records, consider cleaning up your data before insertion
+# Optionally, you can deduplicate records based on the ingestion timestamp or other criteria:
+df_final = df_final.dropDuplicates(["timedetails", "line", "status", "reason", "delay_time", "route"])
+
+# Final write to Hive table
 df_final.write.format("hive").mode("append").saveAsTable("default.TFL_Underground_Result_N")
 
 # Stop Spark session at the end of the script
