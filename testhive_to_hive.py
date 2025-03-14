@@ -32,9 +32,9 @@ df_transformed = df_source.withColumn("ingestion_timestamp", current_timestamp()
 
 # Remove ALL leading and trailing quotes from "route" and "delay_time" columns
 df_transformed = df_transformed.withColumn("route", regexp_replace(col("route"), r'^[\'"]+|[\'"]+$', ''))
-df_transformed = df_transformed.withColumn("timedetails", regexp_replace(col("route"), r'^[\'"]+|[\'"]+$', ''))
-df_transformed = df_transformed.withColumn("reason", regexp_replace(col("route"), r'^[\'"]+|[\'"]+$', ''))
-df_transformed = df_transformed.withColumn("status", regexp_replace(col("route"), r'^[\'"]+|[\'"]+$', ''))
+df_transformed = df_transformed.withColumn("timedetails", regexp_replace(col("timedetails"), r'^[\'"]+|[\'"]+$', ''))
+df_transformed = df_transformed.withColumn("reason", regexp_replace(col("reason"), r'^[\'"]+|[\'"]+$', ''))
+df_transformed = df_transformed.withColumn("status", regexp_replace(col("status"), r'^[\'"]+|[\'"]+$', ''))
 df_transformed = df_transformed.withColumn("delay_time", regexp_replace(col("delay_time"), r'^[\'"]+|[\'"]+$', ''))
 
 # Remove NULL values from the route column
