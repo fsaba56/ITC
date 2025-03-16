@@ -77,6 +77,12 @@ df_transformed = df_transformed.withColumn("record_id", row_number().over(window
 # Ensure "record_id" is Integer
 df_transformed = df_transformed.withColumn("record_id", expr("CAST(record_id AS INT)"))
 
+# Replace all statuses except "Good Service" with "Delay"
+df_transformed = df_transformed.withColumn(
+    "status",
+    when(col("service_status") != "Good Service", "Delay").otherwise(col("status"))
+)
+
 # Debugging: Ensure record_id and new columns are properly created before writing
 df_transformed.select("record_id", "timedetails", "route", "delay_time").show()
 
