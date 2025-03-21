@@ -17,7 +17,7 @@ df.write.mode("overwrite").orc("data.orc")
 df.write.mode("overwrite").json("data.json")
 
 # Save as Delta (requires Delta Lake)
-df.write.format("delta").mode("overwrite").save("sample_data_delta")
+#df.write.format("delta").mode("overwrite").save("sample_data_delta")
 
 # Save as TXT (tab-separated values)
 df.write.mode("overwrite").option("sep", "\t").csv("data.txt")
@@ -39,8 +39,8 @@ df_json = spark.read.json("data.json")
 df_json.show()
 
 # Read Delta
-df_delta = spark.read.format("delta").load("sample_data_delta")
-df_delta.show()
+#df_delta = spark.read.format("delta").load("sample_data_delta")
+#df_delta.show()
 
 # Read TXT (tab-separated)
 df_txt = spark.read.option("sep", "\t").csv("data.txt", header=True)
