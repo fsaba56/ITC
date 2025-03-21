@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession
 spark = SparkSession.builder.appName("FileFormatExample").getOrCreate()
 
 # Read CSV file
-df = spark.read.option("header", True).csv("C:/Users/fsaba/OneDrive/Documents/Training_Documents/data.csv")
+df = spark.read.option("header", True).csv(r"C:/Users/fsaba/OneDrive/Documents/Training_Documents/data.csv")
 
 # Save as Parquet
 df.write.mode("overwrite").parquet("data.parquet")
