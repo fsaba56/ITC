@@ -28,14 +28,17 @@ df.show()
 
 # Read Parquet
 df_parquet = spark.read.parquet("data.parquet")
+print("This is parquet")
 df_parquet.show()
 
 # Read ORC
 df_orc = spark.read.orc("data.orc")
+print("This is orc")
 df_orc.show()
 
 # Read JSON
 df_json = spark.read.json("data.json")
+print("This is json")
 df_json.show()
 
 # Read Delta
